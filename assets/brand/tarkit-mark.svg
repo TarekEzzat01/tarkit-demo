@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44" role="img" aria-labelledby="title">
+  <title id="title">Tarkit logo</title>
+  <circle cx="16" cy="27" r="11" fill="#8B57F1"/>
+  <circle cx="11" cy="22" r="10" fill="#F9FE56" stroke="#030303" stroke-width="2"/>
+  <circle cx="24" cy="17" r="2.25" fill="#D249D9" stroke="#030303" stroke-width="1.5"/>
+</svg>

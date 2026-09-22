@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TARKIT Demo — Sales Intelligence Platform</title>
+<meta name="description" content="TARKIT — a shared sales workspace for B2B teams in Saudi Arabia and the GCC." />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="src/styles/legacy.css">
+<link rel="stylesheet" href="src/styles/product.css">
+<link rel="stylesheet" href="src/styles/platform.css">
+</head>
+<body>
+<!-- THESIS: Three commercial perspectives, one governed workspace and one clear next action.
+OWN-WORLD: Company Assets/guidelines.html governs: signal yellow #F9FE56, system purple #8B57F1, deep purple #523888, lavender #F1E6F6, ink #030303, Arial. User's attached command and forecast dashboards govern density and chart/sidebar composition.
+STORY: Choose an authorized environment, assess revenue, act on deals, and refine the shared GTM plan.
+FIRST VIEWPORT: Persistent sidebar, environment control, concise command briefing, four real metrics, a wide stage chart and next-action panel. Responsive mobile drawer and stacked panels. Both themes use the brand palette.
+FORM: Operate mode; direct navigation, transparent model assumptions, keyboard/touch alternatives to drag, explicit sub-stage confirmation, no invented customer metrics or decorative page-load choreography.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
+
+<!-- Skip to main content (a11y) — visible only on focus. -->
+<a href="#page" class="skip-link">Skip to main content</a>
+
+<!-- ======================= AUTH GATE ======================= -->
+<div id="authGate" style="display:none;">
+  <form class="auth-card" id="authForm" autocomplete="on">
+    <div class="auth-wordmark">TARKIT</div><h1>Your next opportunity starts here.</h1>
+    <div class="auth-sub" id="authSub">Sign in to continue</div>
+
+    <div class="field" id="authNameField" style="display:none;"><label for="authName">Full name</label>
+      <input class="input" id="authName" type="text" autocomplete="name"/>
+    </div>
+    <div class="field"><label for="authEmail">Email</label>
+      <input class="input" id="authEmail" type="email" autocomplete="email" required/>
+    </div>
+    <div class="field"><label for="authPassword">Password</label>
+      <input class="input" id="authPassword" type="password" autocomplete="current-password" required minlength="6"/>
+    </div>
+
+    <button class="btn btn-primary" type="submit" id="authSubmit" style="width:100%; margin-top:8px;">Sign in</button>
+    <div class="auth-err" id="authErr"></div>
+
+    <div style="text-align:center; margin-top:14px; font-size:13px; color:var(--text-muted);">
+      <span id="authToggleLabel">New here?</span>
+      <a href="#" id="authToggle" style="margin-left:4px;">Create an account</a>
+    </div>
+  </form>
+</div>
+
+<!-- ======================= LOADING ======================= -->
+<div id="loadingOverlay" style="display:none;"><div class="spinner"></div></div>
+
+<!-- ======================= QUICK CAPTURE (Workflow 1) ======================= -->
+<div id="qcOverlay" class="qc-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="qcTitle">
+  <div class="qc-card">
+    <div class="qc-title" id="qcTitle">Quick capture</div>
+    <input id="qcInput" class="qc-input" type="text"
+           placeholder="What did you just do? e.g. Called @Omar at #Fennec about $Reporting rollout &gt; send pricing options Thursday"
+           autocomplete="off" aria-label="Quick capture input"/>
+    <div class="qc-preview" id="qcPreview"></div>
+    <div class="qc-hints">
+      <kbd>Enter</kbd>&nbsp;save · <kbd>Esc</kbd>&nbsp;cancel ·
+      <code>@person</code> <code>#company</code> <code>$deal</code> <code>&gt; next action</code>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <!-- ======================= SIDEBAR ======================= -->
+  <aside class="sidebar" aria-label="Primary navigation">
+    <div class="sidebar-header">
+      <div class="brand">
+        <img class="brand-mark" src="assets/brand/tarkit-mark.svg" alt="" width="36" height="36">
+        <div class="brand-name">TARKIT</div>
+      </div>
+      <button class="sidebar-header-action" id="sidebarToggle" data-tip="Collapse sidebar" aria-label="Collapse sidebar">
+        <i data-lucide="chevron-left" width="16" height="16"></i>
+      </button>
+    </div>
+
+    <button id="workspaceSwitcher" class="workspace-switcher" type="button"><span class="workspace-initial">T</span><span><strong>My workspace</strong><small>Sales workspace</small></span></button>
+    <label class="environment-control"><span>Your environment</span><select id="environmentSelect" aria-label="Environment"><option>Loading environments…</option></select></label>
+    <nav class="sidebar-body" id="sidebarNav">
+      <!-- Sections are rendered by JS -->
+    </nav>
+
+    <div class="account-card">
+      <div class="avatar" aria-hidden="true" id="accountAvatar">TK</div>
+      <div class="account-meta">
+        <div class="account-name" id="accountName">Your account</div>
+        <small id="workspaceRole">Member</small>
+      </div>
+      <div class="account-actions">
+        
+        <button class="btn btn-ghost btn-icon" data-tip="Settings" onclick="router.go('settings')" aria-label="Settings">
+          <i data-lucide="settings" width="16" height="16"></i>
+        </button>
+        <button class="btn btn-ghost btn-icon" data-tip="Sign out" onclick="signOut()" aria-label="Sign out">
+          <i data-lucide="log-out" width="16" height="16"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================= MAIN ======================= -->
+  <main class="main">
+    <header class="topbar"><button id="mobileMenu" class="btn btn-ghost btn-icon" aria-label="Open navigation" aria-expanded="false"><i data-lucide="menu"></i></button>
+      <span id="environmentContext" class="environment-context">Commercial</span><span class="breadcrumb-divider" aria-hidden="true">/</span><h2 class="topbar-title" id="topbarTitle">Command Center</h2>
+      <span id="connStatus" class="status-dot" hidden></span>
+      <div class="searchbar">
+        <i data-lucide="search"></i>
+        <input id="globalSearch" type="search" placeholder="Search companies, contacts, deals…" aria-label="Global search"/>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-icon" id="themeToggle" data-tip="Toggle theme" aria-label="Toggle theme">
+          <i id="themeIcon" data-lucide="sun" width="18" height="18"></i>
+        </button>
+        <button class="btn btn-primary" id="quickAddBtn">
+          <i data-lucide="plus" width="16" height="16"></i>
+          Add New
+        </button>
+      </div>
+    </header>
+
+    <section class="page" id="page" aria-live="polite"></section>
+  </main>
+</div>
+
+<!-- ======================= MODALS HOST ======================= -->
+<div id="modalHost"></div>
+<div class="toast-container" id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<script src="src/config.js"></script>
+<script src="src/database.js"></script>
+<script src="src/demo.js"></script>
+<script src="src/legacy/core.js"></script>
+<script src="src/legacy/views.js"></script>
+<script src="src/legacy/auth.js"></script>
+<script src="src/legacy/intelligence.js"></script>
+<script src="src/legacy/bridge.js"></script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
